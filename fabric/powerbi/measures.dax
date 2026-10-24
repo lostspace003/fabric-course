@@ -1,0 +1,97 @@
+// sm_delivery_promise - measures (kit 02 §10). Paste each one with "New measure" in the web model editor (Open data model).
+// Put them in a dedicated table "_Measures" or on the table named in the comment. Format strings are suggestions.
+
+// ---------------------------------------------------------------- Delivery performance (gold_fact_orders)
+Orders =
+COUNTROWS ( gold_fact_orders )
+
+Late Orders =
+CALCULATE ( [Orders], gold_fact_orders[is_late] = 1 )
+
+Late Rate =
+DIVIDE ( [Late Orders], [Orders] )
+// format: percentage, 1 decimal
+
+Revenue =
+SUM ( gold_fact_orders[order_value] )
+// format: currency
+
+Late Rate Peak =
+CALCULATE ( [Late Rate], gold_dim_date[period] = "Peak" )
+
+Late Rate Off-peak =
+CALCULATE ( [Late Rate], gold_dim_date[period] = "Off-peak" )
+
+Peak Late Rate Ratio =
+DIVIDE ( [Late Rate Peak], [Late Rate Off-peak] )
+// kit target: >= 1.5
+
+// ---------------------------------------------------------------- Today's risk (gold_open_orders_scored)
+Open Orders =
+COUNTROWS ( gold_open_orders_scored )
+
+At-Risk Orders =
+CALCULATE ( [Open Orders], gold_open_orders_scored[late_risk] >= 0.6 )
+
+At-Risk Revenue =
+CALCULATE ( SUM ( gold_open_orders_scored[order_value] ), gold_open_orders_scored[late_risk] >= 0.6 )
+// format: currency
+
+Avg Predicted Risk =
+AVERAGE ( gold_open_orders_scored[late_risk] )
+// format: percentage, 1 decimal
+
+At-Risk Share =
+DIVIDE ( [At-Risk Orders], [Open Orders] )
+
+Open Revenue =
+SUM ( gold_open_orders_scored[order_value] )
+
+Last Scored At =
+MAX ( gold_open_orders_scored[scored_at] )
+// card: proves the nightly pipeline ran (Direct Lake shows new rows with no import refresh)
+
+Scoring Model Version =
+MAX ( gold_open_orders_scored[model_version] )
+
+// ---------------------------------------------------------------- Model health / calibration (gold_holdout_scored)
+Holdout Orders =
+COUNTROWS ( gold_holdout_scored )
+
+Holdout Late Rate =
+AVERAGE ( gold_holdout_scored[is_late] )
+// actual late rate; by risk_decile this is the "actual" line of the calibration chart
+
+Holdout Avg Predicted Risk =
+AVERAGE ( gold_holdout_scored[late_risk] )
+// mean late_risk; by risk_decile this is the "predicted" line of the calibration chart
+
+Calibration Gap =
+[Holdout Avg Predicted Risk] - [Holdout Late Rate]
+// near 0 in every decile = well calibrated; positive = over-predicting risk
+
+Calibration Gap (abs) =
+ABS ( [Calibration Gap] )
+
+Expected Calibration Error =
+// weighted mean absolute gap across the 10 deciles
+VAR _byDecile =
+    ADDCOLUMNS (
+        VALUES ( gold_holdout_scored[risk_decile] ),
+        "@n", [Holdout Orders],
+        "@gap", [Calibration Gap (abs)]
+    )
+RETURN
+    DIVIDE ( SUMX ( _byDecile, [@n] * [@gap] ), SUMX ( _byDecile, [@n] ) )
+
+Top Decile Lift =
+// how much likelier the riskiest 10% are to be late than the average holdout order
+DIVIDE (
+    CALCULATE ( [Holdout Late Rate], gold_holdout_scored[risk_decile] = 10 ),
+    CALCULATE ( [Holdout Late Rate], REMOVEFILTERS ( gold_holdout_scored[risk_decile] ) )
+)
+
+Holdout AUC (text) =
+// The AUC lives in the experiment, not in a table. Type the value from exp_delivery_promise into this measure
+// after Lab 3 (e.g. 0.84) so page 3 can show it in a card. Update it when v2 is promoted in Lab 7.
+"Holdout ROC-AUC: " & FORMAT ( 0.84, "0.000" ) & "  (from exp_delivery_promise)"

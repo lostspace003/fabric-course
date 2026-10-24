@@ -1,0 +1,32 @@
+{
+  "model_name": "mdl_delivery_promise",
+  "flavor": "mlflow.lightgbm (native Booster, objective=binary) — returns probability",
+  "request": { "formatType": "dataframe", "orientation": "values", "note": "Each inner array lists values in exactly the order below." },
+  "inputs": [
+    { "order": 1,  "name": "carrier_id",          "type": "long",   "min": 1, "max": 3,  "description": "1 Swiftline, 2 Parcelaro, 3 Northway Freight" },
+    { "order": 2,  "name": "ship_method_express", "type": "long",   "min": 0, "max": 1,  "description": "1 = express, 0 = standard" },
+    { "order": 3,  "name": "warehouse_id",        "type": "long",   "min": 1, "max": 4 },
+    { "order": 4,  "name": "region_id",           "type": "long",   "min": 1, "max": 12 },
+    { "order": 5,  "name": "remoteness",          "type": "long",   "min": 0, "max": 3,  "description": "0 urban, 1 suburban, 2 rural, 3 remote" },
+    { "order": 6,  "name": "distance_km",         "type": "double", "min": 1 },
+    { "order": 7,  "name": "order_hour",          "type": "long",   "min": 0, "max": 23, "description": "UTC hour of order_ts" },
+    { "order": 8,  "name": "order_dow",           "type": "long",   "min": 0, "max": 6,  "description": "Monday = 0" },
+    { "order": 9,  "name": "is_weekend",          "type": "long",   "min": 0, "max": 1 },
+    { "order": 10, "name": "is_peak",             "type": "long",   "min": 0, "max": 1,  "description": "From ref_calendar" },
+    { "order": 11, "name": "items_count",         "type": "long",   "min": 1, "max": 12 },
+    { "order": 12, "name": "total_weight_kg",     "type": "double", "min": 0.1 },
+    { "order": 13, "name": "order_value",         "type": "double", "min": 1 },
+    { "order": 14, "name": "promised_days",       "type": "long",   "min": 1, "max": 7 },
+    { "order": 15, "name": "backlog_index",       "type": "double", "min": 0.3, "max": 1.6, "description": "Warehouse backlog on the previous day" },
+    { "order": 16, "name": "forecast_severity",   "type": "long",   "min": 0, "max": 3,  "description": "Weather forecast issued the day before" }
+  ],
+  "output": { "name": "late_risk", "type": "double", "min": 0, "max": 1 },
+  "forbidden_features": ["shipped_ts", "delivered_ts", "actual_severity", "any field recorded after order_ts"],
+  "decision_policy": [
+    { "if": "late_risk < 0.35", "decision": "keep_promise" },
+    { "if": "0.35 <= late_risk < 0.6", "decision": "extend_promise" },
+    { "if": "late_risk >= 0.6 and ship_method_express == 0", "decision": "offer_express" },
+    { "if": "late_risk >= 0.6 and ship_method_express == 1", "decision": "extend_promise" }
+  ],
+  "alert_rule": "late_risk >= 0.7 and order_value >= 200"
+}

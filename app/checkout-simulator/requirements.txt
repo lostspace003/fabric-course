@@ -1,0 +1,7 @@
+streamlit>=1.36
+requests>=2.31
+azure-identity>=1.16
+azure-eventhub>=5.11
+python-dotenv>=1.0
+jsonschema>=4.21
+pytest>=8.0

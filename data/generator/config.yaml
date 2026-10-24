@@ -1,0 +1,45 @@
+seed: 42
+dates:
+  history_start: '2025-01-01'
+  history_end: '2026-09-30'
+  calendar_end: '2026-12-31'
+  holdout_start: '2026-07-01'
+  as_of: '2026-10-01'
+counts:
+  customers: 8000
+  orders: 90000
+  open_orders: 1500
+  sample_orders: 5000
+  duplicate_rate: 0.005
+peak:
+  start_md: 11-15
+  end_md: 12-31
+  volume_uplift: 0.6
+logit:
+  scale: 2.6
+  b0: -4.45
+  carrier2: 0.35
+  carrier3: 0.2
+  carrier3_remote: 1.4
+  express: -0.8
+  backlog: 1.5
+  forecast: 0.45
+  weather_surprise: 0.3
+  distance: 0.0015
+  late_hour: 0.6
+  weekend: 0.25
+  peak: 0.7
+  items: 0.04
+  weight: 0.015
+  long_promise: -0.3
+  noise_sd: 0.5
+targets:
+  late_rate:
+  - 0.18
+  - 0.22
+  carrier3_remote_min: 0.35
+  peak_ratio_min: 1.5
+  lgbm_auc:
+  - 0.8
+  - 0.87
+  baseline_gap_min: 0.03

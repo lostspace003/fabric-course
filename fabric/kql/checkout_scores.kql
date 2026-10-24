@@ -1,0 +1,61 @@
+// eh_brightcart > KQL database > table CheckoutScores  (kit 02 §8)
+// One row per checkout scored by the app. Events arrive from es_checkout_events as JSON (contracts/checkout_event.schema.json).
+//
+// How this is used in Lab 5:
+//   - If you add the Eventhouse destination with "Event processing before ingestion", the eventstream creates the table and
+//     mapping for you from the JSON it sees ("KQL Destination table > Create new", "Input data format: Json"). ⟲ verify at recording
+//   - If you prefer an explicit schema (recommended, so types are exactly these), run the commands below FIRST in a KQL queryset
+//     on the database, then pick the existing table CheckoutScores (and mapping CheckoutScores_json) when configuring the destination.
+//   - "Direct ingestion" mode opens the Eventhouse "Get data" wizard after Publish, where you select this existing table. ⟲ verify
+
+// 1. Table - explicit schema. create-merge is safe to re-run.
+.create-merge table CheckoutScores (
+    event_time:    datetime,   // when the app scored the checkout (UTC)
+    order_id:      string,
+    region_id:     int,
+    carrier_id:    int,
+    ship_method:   string,     // standard | express
+    order_value:   real,
+    late_risk:     real,       // model output, 0-1
+    decision:      string,     // keep_promise | extend_promise | offer_express
+    model_version: string,     // endpoint version that answered (e.g. "1", "2")
+    latency_ms:    int,
+    app_instance:  string
+)
+
+// 2. JSON ingestion mapping - field names match the event schema one-to-one.
+.create-or-alter table CheckoutScores ingestion json mapping 'CheckoutScores_json'
+```
+[
+  {"column": "event_time",    "Properties": {"Path": "$.event_time"}},
+  {"column": "order_id",      "Properties": {"Path": "$.order_id"}},
+  {"column": "region_id",     "Properties": {"Path": "$.region_id"}},
+  {"column": "carrier_id",    "Properties": {"Path": "$.carrier_id"}},
+  {"column": "ship_method",   "Properties": {"Path": "$.ship_method"}},
+  {"column": "order_value",   "Properties": {"Path": "$.order_value"}},
+  {"column": "late_risk",     "Properties": {"Path": "$.late_risk"}},
+  {"column": "decision",      "Properties": {"Path": "$.decision"}},
+  {"column": "model_version", "Properties": {"Path": "$.model_version"}},
+  {"column": "latency_ms",    "Properties": {"Path": "$.latency_ms"}},
+  {"column": "app_instance",  "Properties": {"Path": "$.app_instance"}}
+]
+```
+
+// 3. Streaming ingestion policy - so a 200-checkout burst shows up within seconds rather than waiting for a batch.
+//    Eventhouse enables streaming ingestion at the database level for eventstream destinations; this per-table policy makes it explicit.
+//    ⟲ verify at recording: if the command errors with "streaming ingestion is not enabled", skip it - the eventstream path is already low-latency.
+.alter table CheckoutScores policy streamingingestion enable
+
+// 4. (Optional) keep the table small for the course: 30 days of data.
+.alter-merge table CheckoutScores policy retention softdelete = 30d
+
+// 5. Sanity queries after "Simulate 200 checkouts" (run from qs_delivery_promise).
+CheckoutScores
+| count
+
+CheckoutScores
+| top 10 by event_time desc
+
+CheckoutScores
+| summarize checkouts = count(), avg_risk = round(avg(late_risk), 3), high = countif(late_risk >= 0.6) by decision
+| order by checkouts desc

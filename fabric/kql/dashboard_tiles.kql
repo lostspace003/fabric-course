@@ -1,0 +1,42 @@
+// rtd_delivery_promise_live - the five tiles (kit 02 §8). Data source: eh_brightcart KQL database.
+// Build: Real-Time Dashboard > Editing > Add tile > paste one query per tile, pick the visual named in the comment.
+// Manage > Refresh (or "Auto refresh" in the ribbon ⟲ verify the label) > every 30 seconds.
+// Tip: each query below also runs as-is in qs_delivery_promise; "Save to dashboard" pins it as a tile.
+
+// ---------------------------------------------------------------------------------------------
+// Tile 1 - "Checkouts per minute" (time chart, last 30 minutes)
+CheckoutScores
+| where event_time > ago(30m)
+| summarize checkouts = count() by bin(event_time, 1m)
+| render timechart
+
+// ---------------------------------------------------------------------------------------------
+// Tile 2 - "High-risk share (%)" (stat / card, last 60 minutes; high = late_risk >= 0.6)
+CheckoutScores
+| where event_time > ago(60m)
+| summarize high = countif(late_risk >= 0.6), total = count()
+| extend pct = round(100.0 * high / total, 1)
+| project pct, high, total
+
+// ---------------------------------------------------------------------------------------------
+// Tile 3 - "Average risk by region" (bar chart; join to a readable name is optional - region_id 1-12 matches ref_regions)
+CheckoutScores
+| where event_time > ago(60m)
+| summarize avg_risk = round(avg(late_risk), 3), checkouts = count() by region_id
+| order by avg_risk desc
+| render barchart with (xcolumn = region_id, ycolumns = avg_risk)
+
+// ---------------------------------------------------------------------------------------------
+// Tile 4 - "Latest high-risk orders" (table; the alert threshold is 0.7, same as act_delivery_risk_alerts)
+CheckoutScores
+| where late_risk >= 0.7
+| top 20 by event_time desc
+| project event_time, order_id, late_risk = round(late_risk, 3), order_value, carrier_id, region_id, ship_method, decision, model_version
+
+// ---------------------------------------------------------------------------------------------
+// Tile 5 - "p95 latency (ms) by model version" (column chart; shows the v1 -> v2 switch in Lab 7, and endpoint wake-up spikes)
+CheckoutScores
+| where event_time > ago(60m)
+| summarize p95 = percentile(latency_ms, 95), p50 = percentile(latency_ms, 50), calls = count() by model_version
+| order by model_version asc
+| render columnchart with (xcolumn = model_version, ycolumns = p95, p50)

@@ -1,0 +1,19 @@
+{
+ "rows": {
+  "carriers.csv": 3,
+  "warehouses.csv": 4,
+  "regions.csv": 12,
+  "calendar_raw.csv": 730,
+  "orders_sample.csv": 5000,
+  "customers.csv": 8000,
+  "orders.csv": 90450,
+  "shipments.csv": 90000,
+  "daily_ops.csv": 2568,
+  "weather_daily.csv": 7692
+ },
+ "late_rate": 0.2018222222222222,
+ "carrier3_remote_late": 0.7447850535098858,
+ "peak_late": 0.3930727677152844,
+ "offpeak_late": 0.16130074732377297,
+ "peak_ratio": 2.4368936550943814
+}

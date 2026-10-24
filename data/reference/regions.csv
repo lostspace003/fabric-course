@@ -1,0 +1,13 @@
+region_id,region_name,remoteness,home_warehouse_id,base_distance_km
+1,Leeds City,0,1,12
+2,Manchester,0,1,65
+3,Bristol City,0,2,10
+4,Cardiff,1,2,70
+5,Norwich City,0,3,14
+6,Cambridge,1,3,95
+7,Southampton City,0,4,11
+8,Brighton,1,4,90
+9,Peak District,2,1,140
+10,Welsh Valleys,2,2,160
+11,Norfolk Broads,2,3,120
+12,Isle of Wight,3,4,210

@@ -1,0 +1,6 @@
+{
+  "_note": "Illustrative values. Shape follows the Fabric ML model endpoint REST spec (ScoreDataResponse).",
+  "formatType": "dataframe",
+  "orientation": "values",
+  "predictions": [[0.81], [0.05]]
+}

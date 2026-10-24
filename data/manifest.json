@@ -1,0 +1,73 @@
+{
+ "baseUrl": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data",
+ "seed": 42,
+ "files": [
+  {
+   "path": "reference/carriers.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/reference/carriers.csv",
+   "rows": 3,
+   "sha256": "d0c95bde04d1459c"
+  },
+  {
+   "path": "reference/warehouses.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/reference/warehouses.csv",
+   "rows": 4,
+   "sha256": "25b5958401955bf3"
+  },
+  {
+   "path": "reference/regions.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/reference/regions.csv",
+   "rows": 12,
+   "sha256": "fc1d6294e4f5e555"
+  },
+  {
+   "path": "reference/calendar_raw.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/reference/calendar_raw.csv",
+   "rows": 730,
+   "sha256": "957dfdde49f15937"
+  },
+  {
+   "path": "reference/orders_sample.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/reference/orders_sample.csv",
+   "rows": 5000,
+   "sha256": "8fa4ee130b2bb595"
+  },
+  {
+   "path": "history/customers.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/history/customers.csv",
+   "rows": 8000,
+   "sha256": "7acac9fd8abb5cda"
+  },
+  {
+   "path": "history/orders.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/history/orders.csv",
+   "rows": 90450,
+   "sha256": "4ffefb1005abfe3e"
+  },
+  {
+   "path": "history/shipments.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/history/shipments.csv",
+   "rows": 90000,
+   "sha256": "6ebf9c39f4a117ca"
+  },
+  {
+   "path": "history/daily_ops.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/history/daily_ops.csv",
+   "rows": 2568,
+   "sha256": "7e08bd330e90d86f"
+  },
+  {
+   "path": "history/weather_daily.csv",
+   "url": "https://raw.githubusercontent.com/lostspace003/fabric-course/main/data/history/weather_daily.csv",
+   "rows": 7692,
+   "sha256": "5dce93345d06b572"
+  }
+ ],
+ "history_files": [
+  "customers.csv",
+  "orders.csv",
+  "shipments.csv",
+  "daily_ops.csv",
+  "weather_daily.csv"
+ ]
+}

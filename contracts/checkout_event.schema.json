@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CheckoutScoreEvent",
+  "description": "One event per scored checkout, sent by checkout-simulator to es_checkout_events and landed in eh_brightcart.CheckoutScores.",
+  "type": "object",
+  "required": ["event_time", "order_id", "region_id", "carrier_id", "ship_method", "order_value", "late_risk", "decision", "model_version", "latency_ms", "app_instance"],
+  "properties": {
+    "event_time":    { "type": "string", "format": "date-time" },
+    "order_id":      { "type": "string", "pattern": "^S[0-9]{7}$", "description": "S-prefixed to distinguish simulated checkouts from history" },
+    "region_id":     { "type": "integer", "minimum": 1, "maximum": 12 },
+    "carrier_id":    { "type": "integer", "minimum": 1, "maximum": 3 },
+    "ship_method":   { "type": "string", "enum": ["standard", "express"] },
+    "order_value":   { "type": "number", "exclusiveMinimum": 0 },
+    "late_risk":     { "type": "number", "minimum": 0, "maximum": 1 },
+    "decision":      { "type": "string", "enum": ["keep_promise", "extend_promise", "offer_express"] },
+    "model_version": { "type": "string" },
+    "latency_ms":    { "type": "integer", "minimum": 0 },
+    "app_instance":  { "type": "string" }
+  },
+  "additionalProperties": false
+}
