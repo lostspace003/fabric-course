@@ -13,12 +13,13 @@ from policy import CONTRACT_COLUMNS, REGIONS, BACKLOG_LOOKUP, FORECAST_LOOKUP
 MOCK_MODEL_VERSION = "mock"
 
 # Logit coefficients, copied from data/generator/config.yaml.
-B0 = -2.47
+SCALE = 2.6   # multiplies every signal term (config.yaml logit.scale)
+B0 = -4.45
 CARRIER2 = 0.35
 CARRIER3 = 0.20
-CARRIER3_REMOTE = 0.90
+CARRIER3_REMOTE = 1.40
 EXPRESS = -0.80
-BACKLOG = 1.10
+BACKLOG = 1.50
 FORECAST = 0.45
 DISTANCE = 0.0015
 LATE_HOUR = 0.60
@@ -33,7 +34,7 @@ def mock_late_risk(row: dict) -> float:
     """late_risk for one order. `row` has the 16 contract columns as keys."""
     carrier = int(row["carrier_id"])
     remote = int(row["remoteness"]) >= 2
-    z = B0
+    z = 0.0
     z += CARRIER2 * (carrier == 2)
     z += CARRIER3 * (carrier == 3)
     z += CARRIER3_REMOTE * (carrier == 3 and remote)
@@ -47,6 +48,7 @@ def mock_late_risk(row: dict) -> float:
     z += ITEMS * int(row["items_count"])
     z += WEIGHT * float(row["total_weight_kg"])
     z += LONG_PROMISE * (int(row["promised_days"]) >= 5)
+    z = B0 + SCALE * z
     p = 1.0 / (1.0 + math.exp(-z))
     return round(p, 4)
 

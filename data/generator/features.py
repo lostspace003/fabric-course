@@ -30,7 +30,7 @@ def build_features(orders, regions, calendar, daily_ops, weather, rng_seed=42) -
     o["promised_days"] = (pd.to_datetime(o.promised_date) - ts.dt.tz_localize(None).dt.normalize()).dt.days
     o = o.merge(regions[["region_id", "remoteness", "base_distance_km"]], on="region_id", how="left")
     # distance_km is not in the raw orders: nb_02 derives it from the region's base distance (deterministic jitter by order_id)
-    jitter = 0.8 + 0.4 * ((o.order_id * 2654435761) % 1000) / 1000
+    jitter = 0.8 + 0.4 * ((o.order_id.astype("int64") * 2654435761) % 1000) / 1000
     o["distance_km"] = (o.base_distance_km * jitter).round(1)
     o = o.merge(calendar[["date", "is_weekend", "is_peak"]], on="date", how="left")
     prev = (pd.to_datetime(o.date) - pd.Timedelta(days=1)).dt.strftime("%Y-%m-%d")

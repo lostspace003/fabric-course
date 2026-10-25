@@ -205,6 +205,7 @@ def main(check: bool) -> dict:
     manifest["history_files"] = [f["path"].split("/", 1)[1] for f in manifest["files"] if f["path"].startswith("history/")]
     (DATA / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
     write_ops_sql(open_orders, ops / "sqldb_ops_setup.sql")
+    open_orders.to_csv(ops / "open_orders.csv", index=False, lineterminator="\n")
 
     stats = {"rows": {k.name: len(v) for k, v in files.items()}, "late_rate": float(is_late.mean()),
              "carrier3_remote_late": float(is_late[(orders.carrier_id == 3) & (h.remoteness >= 2)].mean()),

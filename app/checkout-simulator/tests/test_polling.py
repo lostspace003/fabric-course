@@ -97,3 +97,27 @@ def test_error_messages(status, needle):
 def test_version_pinned_url():
     assert score_url("ws", "m", "2").endswith("/mlModels/m/endpoint/versions/2/score")
     assert score_url("ws", "m").endswith("/mlModels/m/endpoint/score")
+
+
+def test_timeout_is_retried_while_endpoint_wakes_up():
+    """First call after idle times out; the client retries instead of failing (dry run 2026-10-25)."""
+    import requests, fabric_client as fc
+    class S:
+        n = 0
+        def post(self, url, json=None, headers=None, timeout=None):
+            S.n += 1
+            if S.n == 1:
+                raise requests.Timeout()
+            class R:
+                status_code = 200
+                text = ""
+                def json(self_inner): return {"formatType": "dataframe", "orientation": "values", "predictions": [[0.42]]}
+            return R()
+    class Cred:
+        def get_token(self, scope):
+            class T: token = "t"
+            return T()
+    msgs = []
+    c = fc.FabricClient(workspace_id="w", model_id="m", credential=Cred(), session=S(), on_wait=msgs.append)
+    assert c.score([[1] * 16]) == [0.42]
+    assert S.n == 2 and msgs == ["Waking up the model..."]

@@ -106,12 +106,20 @@ class FabricClient:
         body = build_request(rows)
         self.last_request = body
         headers = self._headers()
-        try:
-            resp = self.session.post(self.url, json=body, headers=headers, timeout=REQUEST_TIMEOUT)
-        except requests.Timeout as exc:
-            raise FabricError(f"Timed out after {REQUEST_TIMEOUT}s calling the endpoint.") from exc
-        except requests.ConnectionError as exc:
-            raise FabricError(f"Could not reach api.fabric.microsoft.com: {exc}") from exc
+        # An idle endpoint goes to sleep (auto sleep, 5 min); the first call after that can time out while it wakes up.
+        # Dry run on a real endpoint (2026-10-25): first call timed out at 30 s, the next answered in ~20 ms per row.
+        # So a timeout is retried until MAX_WAIT_SECONDS, telling the UI "Waking up the model...".
+        started = time.monotonic()
+        while True:
+            try:
+                resp = self.session.post(self.url, json=body, headers=headers, timeout=REQUEST_TIMEOUT)
+                break
+            except requests.Timeout as exc:
+                if time.monotonic() - started + REQUEST_TIMEOUT > MAX_WAIT_SECONDS:
+                    raise FabricError(f"Timed out after {int(time.monotonic() - started)}s calling the endpoint.") from exc
+                self.on_wait("Waking up the model...")
+            except requests.ConnectionError as exc:
+                raise FabricError(f"Could not reach api.fabric.microsoft.com: {exc}") from exc
         self.last_status = resp.status_code
 
         if resp.status_code == 202:
